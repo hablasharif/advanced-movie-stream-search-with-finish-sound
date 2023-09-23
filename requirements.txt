@@ -1,4 +1,3 @@
-winsound
 requests
 beautifulsoup4
 pandas
