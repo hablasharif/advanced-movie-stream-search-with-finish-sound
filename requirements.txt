@@ -1,7 +1,7 @@
+winsound
 requests
 beautifulsoup4
 pandas
 IMDbPY
 tqdm
 lxml
-
