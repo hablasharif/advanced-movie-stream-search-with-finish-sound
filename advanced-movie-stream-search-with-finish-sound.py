@@ -1,4 +1,5 @@
 import streamlit as st
+import winsound
 import pandas as pd
 from imdb import IMDb
 from tqdm import tqdm
@@ -13,7 +14,7 @@ def play_internal_sound():
     # You can customize the sound frequency (Hz) and duration (milliseconds)
     winsound.Beep(frequency=1000, duration=1000)
 
-# Function to search movie on IMDb
+# Function to search movie on IMDb by movie name and year
 def search_movie_imdb(movie_name, release_year):
     ia = IMDb()
     movies = ia.search_movie(movie_name)
@@ -22,6 +23,28 @@ def search_movie_imdb(movie_name, release_year):
         movie = filtered_movies[0]
         imdb_id = movie.getID()
         return imdb_id
+    else:
+        return None
+
+# Function to search movie on IMDb by movie name only
+def search_movie_imdb_by_name(movie_name):
+    ia = IMDb()
+    movies = ia.search_movie(movie_name)
+    if movies:
+        movie = movies[0]
+        imdb_id = movie.getID()
+        return imdb_id
+    else:
+        return None
+
+# Function to search for movies by actor's name
+def search_movies_by_actor(actor_name):
+    ia = IMDb()
+    movies = ia.search_person(actor_name)
+    if movies:
+        actor_id = movies[0].getID()
+        filmography = ia.get_person_filmography(actor_id)
+        return filmography
     else:
         return None
 
@@ -126,9 +149,40 @@ user_agents = [
 
 st.title("Movie Search App")
 
-st.sidebar.header("Movie Details")
+st.sidebar.header("Search Options")
+
+# Option 1: Search by Movie Name and Year
+search_by_name_and_year = st.sidebar.checkbox("Search by Movie Name and Year")
+if search_by_name_and_year:
+    movie_name_input = st.sidebar.text_input("Enter Movie Name")
+    release_year_input = st.sidebar.number_input("Enter Release Year", min_value=1900, max_value=2100)
+    if st.sidebar.button("Search"):
+        imdb_id = search_movie_imdb(movie_name_input, release_year_input)
+        if imdb_id:
+            st.sidebar.success(f"IMDb ID: https://www.imdb.com/title/tt{imdb_id}")
+            st.sidebar.success(f"VIDSRC.TO: https://vidsrc.to/embed/movie/tt{imdb_id}")
+            st.sidebar.success(f"SMASHYSTREAM: https://embed.smashystream.com/playere.php?imdb=tt{imdb_id}")
+        else:
+            st.sidebar.warning("Movie not found")
+
+# Option 2: Search by Movie Name Only
+search_by_name_only = st.sidebar.checkbox("Search by Movie Name Only")
+if search_by_name_only:
+    movie_name_input = st.sidebar.text_input("Enter Movie Name")
+    if st.sidebar.button("Search"):
+        imdb_id = search_movie_imdb_by_name(movie_name_input)
+        if imdb_id:
+            st.sidebar.success(f"IMDb ID: https://www.imdb.com/title/tt{imdb_id}")
+            st.sidebar.success(f"VIDSRC.TO: https://vidsrc.to/embed/movie/tt{imdb_id}")
+            st.sidebar.success(f"VIDSRC.ME: https://vidsrc.me/embed/tt{imdb_id}")
+            st.sidebar.success(f"SMASHYSTREAM: https://embed.smashystream.com/playere.php?imdb=tt{imdb_id}")
+        else:
+            st.sidebar.warning("Movie not found")
+
+# Option 3: Upload a CSV file with movie details
 uploaded_file = st.sidebar.file_uploader("Upload a CSV file with movie details", type=["csv"])
 
+# Option 4: Specify which URLs to fetch
 url_options = {
     "vidsrc.to": st.sidebar.checkbox("vidsrc.to", value=True),
     "vidsrc.me": st.sidebar.checkbox("vidsrc.me", value=True),
@@ -137,6 +191,21 @@ url_options = {
     "2embed.cc": st.sidebar.checkbox("2embed.cc", value=True),
     "databasegdriveplayer.xyz": st.sidebar.checkbox("databasegdriveplayer.xyz", value=True),
 }
+
+# Option 5: Show all movies acted by an actor
+show_movies_by_actor = st.sidebar.checkbox("Show all movies acted by actor")
+
+if show_movies_by_actor:
+    actor_name_input = st.sidebar.text_input("Enter Actor's Name")
+    if st.sidebar.button("Search"):
+        filmography = search_movies_by_actor(actor_name_input)
+        if filmography:
+            st.subheader(f"Movies acted by {actor_name_input}")
+            movie_list = [movie['title'] for movie in filmography['actor']]
+            st.write(movie_list)
+        else:
+            st.sidebar.warning("Actor not found")
+
 
 if uploaded_file is not None:
     movie_data = pd.read_csv(uploaded_file)
@@ -203,3 +272,6 @@ if uploaded_file is not None:
     html_filename_prefix = "movie_search_results"
     html_link = create_download_link_html(results_df, "Download HTML", html_filename_prefix)
     st.markdown(html_link, unsafe_allow_html=True)
+
+    # Play the internal sound after the code finishes
+    play_internal_sound()
