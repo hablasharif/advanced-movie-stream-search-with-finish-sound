@@ -1,5 +1,5 @@
 import streamlit as st
-import winsound
+# import winsound
 import pandas as pd
 from imdb import IMDb
 from tqdm import tqdm
@@ -10,9 +10,9 @@ import base64
 from datetime import datetime
 
 # Internal sound function
-def play_internal_sound():
-    # You can customize the sound frequency (Hz) and duration (milliseconds)
-    winsound.Beep(frequency=1000, duration=1000)
+# def play_internal_sound():
+#     # You can customize the sound frequency (Hz) and duration (milliseconds)
+#     winsound.Beep(frequency=1000, duration=1000)
 
 # Function to search movie on IMDb by movie name and year
 def search_movie_imdb(movie_name, release_year):
@@ -273,5 +273,5 @@ if uploaded_file is not None:
     html_link = create_download_link_html(results_df, "Download HTML", html_filename_prefix)
     st.markdown(html_link, unsafe_allow_html=True)
 
-    # Play the internal sound after the code finishes
-    play_internal_sound()
+    # # Play the internal sound after the code finishes
+    # play_internal_sound()
